@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Shugacoin - Block reward half countdown</title>
+<meta name="description" content="Shugacoin is a cryptocurrency that enables instant payments to anyone in the world and that can be efficiently mined with consumer-grade hardware." />
+<meta name="keywords" content="shugacoin, shuga, crypto, cryptocurrency, bitcoin, ethereum, monero, btc, eth, miningpoolstats, bitcointalk" />
+<meta name="author" content="shugacoin"/>
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="img/favicon.png" />
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<link href="dev.css" rel="stylesheet">
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700' rel='stylesheet' type='text/css' />
+
+<div class="container">
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="tile">
+                    <div class="wrapper">
+                        <div class="header">Shugacoin Block Reward Half Countdown</div>
+
+                        <div class="dates">
+                                <p id="hours">loading...</p> <strong>Left until halving</strong>
+                        </div>
+
+                        <div class="stats">
+
+                            <div>
+                                <strong>Height</strong> <p id="listblocks">loading...</p>
+                            </div>
+
+                            <div>
+                                <strong>Reward</strong> <p id="reward">loading...</p>
+                            </div>
+
+                            <div>
+                                <strong>Remaining Blocks Left</strong> <p id="blkleft">loading...</p>
+                            </div>
+
+                            <div>
+                                <strong>Current Network Difficulty</strong> <p id="netDifficulty">loading...</p>
+                            </div>
+							
+                            <div>
+                                <strong>Current Network Hashrate</strong> <p id="netHashrate">loading...</p>
+                            </div>
+
+                            <div>
+                                <strong>Approx. Shugacoin Left to Mine</strong> <p id="shugaLeft">loading...</p>
+                            </div>							
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+        <script>
+            api = "https://api.shugacoin.org"
+
+            function getPrice() {
+                return Promise.resolve($.ajax({
+                    url: api + "/price",
+                    dataType: 'json',
+                    type: 'GET',
+                }))
+            }
+
+            function getBlockHeight() {
+                return Promise.resolve($.ajax({
+                    url: api + "/info",
+                    dataType: "json",
+                    type: "GET"
+                }))
+            }
+
+            function printData() {
+                getBlockHeight().then(function(data) {
+                    var height = data.result.blocks
+                    $("#listblocks").text(height)
+                })
+            }
+
+            function getTime() {
+                getBlockHeight().then(function(data) {
+                    var height = data.result.blocks
+                    var time = height * 5
+                })
+            }
+            function getBlockReward() {
+                getBlockHeight().then(function(data) {
+                    var getReward = parseInt(data.result.reward)
+                    var blockreward = getReward / 100000000
+                    $("#reward").text(blockreward)
+                })
+            }
+            function secondsToHms(d) {
+                d = Number(d);
+                
+                var hours = Math.floor(d / 3600);
+                var m = Math.floor(d % 3600 / 60);
+                var s = Math.floor(d % 3600 % 60);
+                var day = Math.floor(hours / 24)
+                var h = hours - (day * 24)
+
+                return (day) + " Days, " + (h) + 'h' +":" + ('0' + m).slice(-2) + 'm' + ":" + ('0' + s).slice(-2) + 's';
+            }
+            n = 1
+            function getRemainingBlocksLeft() {
+                getBlockHeight().then(function(data) {
+                half = 12500000 * n
+                if(document.getElementById("blkleft").innerHTML == "0") {
+                    n++;
+                } else if (document.getElementById("blkleft").innerHTML > "0") {
+                    n;
+                }
+                height = data.result.blocks
+                remainheight = half-height
+                $("#blkleft").text(remainheight)
+                $("#hours").text(secondsToHms(remainheight * 5))
+                })
+                }
+
+            function getNetDifficulty() {
+                getBlockHeight().then(function(data) {
+                    getnetDif = parseFloat(data.result.difficulty)
+                    $("#netDifficulty").text(getnetDif)
+                })
+            }
+            
+            function getNetHash() {
+                getBlockHeight().then(function(data) {
+                    netHash = Math.round(((data.result.nethash) / 1000000) * 100) / 100
+                    $("#netHashrate").text(netHash + " MH/S")
+                })
+            }
+            
+            function getAmountShugaLeft() {
+                amountLeft = Math.round((document.getElementById("blkleft").innerHTML) * (document.getElementById("reward").innerHTML))
+                $("#shugaLeft").text(amountLeft)
+            }
+
+            function getCurrentPrice() {
+                getPrice().then(function(data) {
+                    priceUSD = parseFloat(data.result.usd)
+                    getpriceBTC = data.result.btc
+                    priceBTC = Number(getpriceBTC).toLocaleString(undefined, {minimumFractionDigits: 8, maximumFractionDigits: 8})
+                    $("#priceusd").text("$" + priceUSD)
+                    $("#pricebtc").text(priceBTC + "BTC")
+
+                })
+            }
+
+            setInterval(function() {
+                printData()
+                getTime()
+                getBlockReward()
+                getRemainingBlocksLeft()
+                getNetDifficulty()
+                getNetHash()
+                getAmountShugaLeft()
+                getCurrentPrice()
+            }, 1000)
+        </script>	
+	
+</html>
